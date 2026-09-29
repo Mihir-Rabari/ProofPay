@@ -21,10 +21,71 @@ enum AssetStatus {
   REJECTED
 }
 
+enum MediaStorage {
+  LOCAL
+  CLOUDINARY
+}
+
 enum LedgerType {
   FUND
   HOLD
   RELEASE
+}
+
+enum WorkspaceRole {
+  FUNDER
+  NGO_ADMIN
+  FIELD_WORKER
+  REVIEWER
+  AUDITOR
+}
+
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String
+  createdAt DateTime @default(now())
+  memberships Membership[]
+  sessions Session[]
+}
+
+model Organization {
+  id String @id @default(cuid())
+  name String
+  createdAt DateTime @default(now())
+  memberships Membership[]
+  projects Project[]
+}
+
+model Membership {
+  id String @id @default(cuid())
+  userId String
+  organizationId String
+  role WorkspaceRole
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  organization Organization @relation(fields:[organizationId], references:[id], onDelete:Cascade)
+  createdAt DateTime @default(now())
+  @@unique([userId, organizationId])
+  @@index([organizationId, role])
+}
+
+model Session {
+  id String @id @default(cuid())
+  tokenHash String @unique
+  userId String
+  user User @relation(fields:[userId], references:[id], onDelete:Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  @@index([userId, expiresAt])
+}
+
+model LoginThrottle {
+  key String @id
+  failures Int @default(0)
+  windowStartedAt DateTime @default(now())
+  blockedUntil DateTime?
+  updatedAt DateTime @updatedAt
 }
 
 model Project {
@@ -34,6 +95,12 @@ model Project {
   location String
   budget Int
   funded Int @default(0)
+  isPublic Boolean @default(false)
+  latitude Float?
+  longitude Float?
+  geofenceRadiusM Float @default(500)
+  organizationId String
+  organization Organization @relation(fields:[organizationId], references:[id], onDelete:Cascade)
   createdAt DateTime @default(now())
   milestones Milestone[]
   assets Asset[]
@@ -64,8 +131,9 @@ model Asset {
   publicId String @unique
   secureUrl String
   thumbnailUrl String
+  storageProvider MediaStorage @default(LOCAL)
   sha256 String
-  phash String?
+  perceptualHash String?
   capturedAt DateTime?
   latitude Float?
   longitude Float?
@@ -97,4 +165,17 @@ model LedgerEntry {
   creditAccount String
   idempotencyKey String @unique
   createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+  organizationId String
+  actorId String
+  action String
+  entityType String
+  entityId String
+  details Json
+  createdAt DateTime @default(now())
+  @@index([organizationId, createdAt])
+  @@index([entityType, entityId])
 }
