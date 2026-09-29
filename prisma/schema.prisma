@@ -1,9 +1,31 @@
-generator client { provider = "prisma-client-js" }
-datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+generator client {
+  provider = "prisma-client-js"
+}
 
-enum Verdict { VERIFIED NEEDS_REVIEW REJECTED }
-enum AssetStatus { RECEIVED ANALYZING VERIFIED NEEDS_REVIEW REJECTED }
-enum LedgerType { FUND HOLD RELEASE }
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Verdict {
+  VERIFIED
+  NEEDS_REVIEW
+  REJECTED
+}
+
+enum AssetStatus {
+  RECEIVED
+  ANALYZING
+  VERIFIED
+  NEEDS_REVIEW
+  REJECTED
+}
+
+enum LedgerType {
+  FUND
+  HOLD
+  RELEASE
+}
 
 model Project {
   id String @id @default(cuid())

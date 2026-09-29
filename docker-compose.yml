@@ -1,6 +1,6 @@
 services:
   postgres:
-    image: pgvector/pgvector:pg16
+    build: ./infra/postgres
     container_name: proofpay-postgres
     restart: unless-stopped
     environment:
