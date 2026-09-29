@@ -17,6 +17,18 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000), create the first account (it becomes `FUNDER` for its workspace), then create a project, fund simulated escrow, and allocate a milestone. Add other users by email after they register. Assign a reviewer to enable independent milestone decisions.
 
+## React Native field app
+
+The Expo app lives in `apps/mobile` and uses the same API, database, organization memberships, and server-side role checks as the web workspace. It supports secure sign-in, project and milestone views, reviewer decisions, and private evidence-photo uploads.
+
+```powershell
+cd apps/mobile
+npm install
+npx expo start
+```
+
+Set `EXPO_PUBLIC_API_BASE_URL` in `apps/mobile/.env` to the API address reachable from the device. For a physical phone, use the computer's LAN IP (for example `http://192.168.1.20:3000`); Android emulators commonly reach the host at `http://10.0.2.2:3000`. `localhost` works for iOS Simulator and local web development. The native app stores its revocable bearer session in Expo SecureStore; the server accepts that token through the same API middleware used by web cookie sessions.
+
 ## Service configuration
 
 By default, images are persisted on the app host under the ignored `.proofpay/` directory; originals are never served without workspace membership. This lets the full upload→review flow run locally with no vendor account. Set all of `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, and `CLOUDINARY_API_SECRET` in `.env` to use authenticated Cloudinary storage instead. Set `GEMINI_API_KEY` (and optionally `GEMINI_MODEL`) for vision analysis. Without Gemini, media is still stored with server-computed SHA-256, EXIF and image fingerprint; ProofPay leaves the trust score at zero and requires a human reviewer rather than fabricating analysis. Configure a durable shared object store and worker queue before running multiple app replicas.

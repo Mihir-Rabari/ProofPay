@@ -7,3 +7,7 @@ coverage
 *.log
 *.tsbuildinfo
 .proofpay
+.npm-cache
+.npm-logs
+.tmp
+.expo-home
