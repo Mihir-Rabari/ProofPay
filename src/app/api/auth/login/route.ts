@@ -34,7 +34,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Email or password is incorrect." }, { status: 401 });
   }
   await prisma.loginThrottle.deleteMany({ where: { key: { in: keys } } });
+  const native = request.headers.get("x-proofpay-client") === "native";
   const response = NextResponse.json({ user: { id: user.id, name: user.name, email: user.email } });
-  await startSession(user.id, response);
+  const sessionToken = await startSession(user.id, response);
+  if (native) response.headers.set("x-proofpay-session-token", sessionToken);
   return response;
 }
