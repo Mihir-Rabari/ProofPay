@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: proofpay-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: proofpay
+      POSTGRES_PASSWORD: proofpay
+      POSTGRES_DB: proofpay
+    ports: ["5432:5432"]
+    volumes: ["proofpay_pgdata:/var/lib/postgresql/data", "./infra/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U proofpay -d proofpay"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  redis:
+    image: redis:7-alpine
+    container_name: proofpay-redis
+    restart: unless-stopped
+    ports: ["6379:6379"]
+    volumes: ["proofpay_redisdata:/data"]
+    command: ["redis-server", "--appendonly", "yes"]
+volumes:
+  proofpay_pgdata:
+  proofpay_redisdata:

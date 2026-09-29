@@ -1,0 +1,78 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum Verdict { VERIFIED NEEDS_REVIEW REJECTED }
+enum AssetStatus { RECEIVED ANALYZING VERIFIED NEEDS_REVIEW REJECTED }
+enum LedgerType { FUND HOLD RELEASE }
+
+model Project {
+  id String @id @default(cuid())
+  name String
+  description String
+  location String
+  budget Int
+  funded Int @default(0)
+  createdAt DateTime @default(now())
+  milestones Milestone[]
+  assets Asset[]
+  ledgerEntries LedgerEntry[]
+}
+model Milestone {
+  id String @id @default(cuid())
+  projectId String
+  project Project @relation(fields:[projectId], references:[id], onDelete:Cascade)
+  title String
+  criteria String
+  amount Int
+  dueAt DateTime
+  minTrust Float @default(0.8)
+  verdict Verdict @default(NEEDS_REVIEW)
+  trustScore Float @default(0)
+  releasedAt DateTime?
+  assets Asset[]
+  ledgerEntries LedgerEntry[]
+  createdAt DateTime @default(now())
+}
+model Asset {
+  id String @id @default(cuid())
+  projectId String
+  milestoneId String?
+  project Project @relation(fields:[projectId], references:[id], onDelete:Cascade)
+  milestone Milestone? @relation(fields:[milestoneId], references:[id], onDelete:SetNull)
+  publicId String @unique
+  secureUrl String
+  thumbnailUrl String
+  sha256 String
+  phash String?
+  capturedAt DateTime?
+  latitude Float?
+  longitude Float?
+  caption String?
+  activity String?
+  trustScore Float @default(0)
+  status AssetStatus @default(RECEIVED)
+  analysis Json?
+  createdAt DateTime @default(now())
+  evidenceLinks EvidenceLink[]
+}
+model EvidenceLink {
+  id String @id @default(cuid())
+  assetId String
+  asset Asset @relation(fields:[assetId], references:[id], onDelete:Cascade)
+  claim String
+  transformationUrl String
+  createdAt DateTime @default(now())
+}
+model LedgerEntry {
+  id String @id @default(cuid())
+  projectId String
+  milestoneId String?
+  project Project @relation(fields:[projectId], references:[id], onDelete:Cascade)
+  milestone Milestone? @relation(fields:[milestoneId], references:[id], onDelete:SetNull)
+  type LedgerType
+  amount Int
+  debitAccount String
+  creditAccount String
+  idempotencyKey String @unique
+  createdAt DateTime @default(now())
+}
